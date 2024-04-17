@@ -21,7 +21,6 @@ def get_data():
     external_data = get_external_data()
     if external_data:
         # Code to process the external data
-
         return jsonify(external_data)
     else:
         return jsonify({'message': 'Failed to retrieve external data'})
@@ -36,22 +35,9 @@ def create_data():
 def get_external_data():
     url = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol=IBM&apikey={}'.format(secret_key)
     response = requests.get(url)
-    print(response)
     # Check if the request was successful
     if response.status_code == 200:
         # Parse the JSON response
-        data = response.json()
-        print(data)
-        # # Get the list of sectors
-        # sectors = data['Rank A: Real-Time Performance']
-
-        # # Find the TECHNOLOGY sector
-        # tech_sector = next((sector for sector, info in sectors.items() if sector == 'TECHNOLOGY'), None)
-
-        # # Get the list of tickers in the TECHNOLOGY sector
-        # tech_tickers = [ticker.strip() for ticker in sectors[tech_sector].split(',')]
-
-        # # Print the list of tickers
-        # print(tech_tickers)
+        return response.json()
     else:
         print('Error: {}'.format(response.status_code))
