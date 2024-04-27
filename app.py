@@ -10,6 +10,8 @@ app = Flask(__name__)
 secret_key = os.getenv('ALPHA_VANTAGE_API_KEY')
 polygon_key = os.getenv('POLYGON_IO_API_KEY')
 
+polygon_base = "https://api.polygon.io"
+
 @app.route('/', methods=['GET'])
 def home():
     return 'Hello, World!'
@@ -35,12 +37,30 @@ def get_poly_data():
     else:
         return jsonify({'message': 'Failed to retrieve external data'})
 
+@app.route('/api/ohlc/<ticker>/<datestr>')
+def get_ohlc_data(ticker: str, datestr: str):
+    external_data = get_ticker_ohlc_data(ticker, datestr)
+    if external_data:
+        return jsonify(external_data)
+    else:
+        return jsonify({'message': 'It failed so hard'})
+
+
 @app.route('/api/data', methods=['POST'])
 def create_data():
     # Code to handle the POST request data
     data = request.get_json()
     # Code to process the data and store it in a database or send it to an external API
     return jsonify({'message': 'Data received successfully'})
+
+def get_ticker_ohlc_data(ticker: str, datestr: str):
+    url = f"https://api.polygon.io/v1/open-close/{ticker.upper()}/{datestr}?adjusted=true&apikey={polygon_key}"
+    print(url)
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print('Error: {}'.format(response.status_code))
 
 def get_external_polygon_data():
     url = 'https://api.polygon.io/v3/reference/tickers?type=CS&market=stocks&active=true&apiKey={}'.format(polygon_key)
