@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 import math
 
 TRADE_DAYS_PER_YEAR = 252
@@ -27,7 +27,21 @@ def validate_key(items: List[Dict], key: str) -> bool:
 def calculate_tau(items: List) -> float:
   return len(items) / TRADE_DAYS_PER_YEAR
 
-def calculate_volatility(items: List[Dict], key: str = 'c') -> [float, float]:
+def calculate_volatility(vals: List[float]) -> tuple[float, float]:
+  count = len(vals)
+  uis = get_uis(vals)
+  uis_squared = sum_squares(uis)
+  sum_uis_squared = sum_squared(uis)
+  first_term = (1/(count - 1)) * uis_squared
+  second_term = (1/(count*(count - 1)))* sum_uis_squared
+  s = math.sqrt(first_term - second_term)
+  tau = calculate_tau(vals)
+  sigma_hat = s / math.sqrt(tau)
+  error = sigma_hat / math.sqrt(2*count)
+  return sigma_hat, error
+
+
+def calculate_daily_volatility(items: List[Dict], key: str = 'c') -> tuple[float, float]:
   count = len(items)
   if count <= 1:
     raise ValueError('Cannot calculate volatility of only one value')
@@ -35,13 +49,4 @@ def calculate_volatility(items: List[Dict], key: str = 'c') -> [float, float]:
     raise ValueError(f'Key {key} must be present in all inputs')
 
   vals = list(map(lambda item: item[key], items))
-  uis = get_uis(vals)
-  uis_squared = sum_squares(uis)
-  sum_uis_squared = sum_squared(uis)
-  first_term = (1/(count - 1)) * uis_squared
-  second_term = (1/(count*(count - 1)))* sum_uis_squared
-  s = math.sqrt(first_term - second_term)
-  tau = calculate_tau(items)
-  sigma_hat = s / math.sqrt(tau)
-  error = sigma_hat / math.sqrt(2*count)
-  return sigma_hat, error
+  return calculate_volatility(vals)
