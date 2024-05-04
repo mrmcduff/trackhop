@@ -31,3 +31,24 @@ def test_validate_valid_keys():
   assert vt.validate_key(test_list, 'a') is True
   assert vt.validate_key(test_list, 'x') is False
   assert vt.validate_key(test_list_with_c, 'c') is True
+
+def test_invalid_length():
+  short_list = [{ 'a': 1, 'b': 2}]
+  empty_list = []
+  with pytest.raises(ValueError):
+    vt.calculate_volatility(short_list)
+  with pytest.raises(ValueError):
+    vt.calculate_volatility(empty_list)
+
+def test_invalid_keys():
+  test_list = [{ 'a': 1, 'b': 2}, { 'a': 12, 'x': 13, 'c': 12}]
+  test_list_with_c =  [{ 'a': 1, 'c': 2}, { 'a': 12, 'c': 13}]
+  with pytest.raises(ValueError):
+    vt.calculate_volatility(test_list)
+  with pytest.raises(ValueError):
+    vt.calculate_volatility(test_list_with_c, 'b')
+
+def test_known_values():
+  test_list = [{ 'o': 1, 'h': 2, 'l': 3, 'c': 4}, { 'o': 1, 'h': 2, 'l': 3, 'c': 4}]
+  [sigma, err] = vt.calculate_volatility(test_list)
+  assert sigma == 0

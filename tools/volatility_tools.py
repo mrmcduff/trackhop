@@ -27,10 +27,12 @@ def validate_key(items: List[Dict], key: str) -> bool:
 def calculate_tau(items: List) -> float:
   return len(items) / TRADE_DAYS_PER_YEAR
 
-def calculate_volatility(items: List[Dict], key: str = 'c') -> float:
+def calculate_volatility(items: List[Dict], key: str = 'c') -> [float, float]:
   count = len(items)
-  if count <= 1 or not validate_key(items, key):
-    return 0
+  if count <= 1:
+    raise ValueError('Cannot calculate volatility of only one value')
+  if not validate_key(items, key):
+    raise ValueError(f'Key {key} must be present in all inputs')
 
   vals = list(map(lambda item: item[key], items))
   uis = get_uis(vals)
