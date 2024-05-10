@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import requests
 import os
+from components import QueryCache
 import json
 from dotenv import load_dotenv
 
@@ -11,6 +12,8 @@ secret_key = os.getenv('ALPHA_VANTAGE_API_KEY')
 polygon_key = os.getenv('POLYGON_IO_API_KEY')
 
 polygon_base = "https://api.polygon.io"
+
+api_cache = QueryCache.QueryCache()
 
 @app.route('/', methods=['GET'])
 def home():
@@ -39,8 +42,14 @@ def get_poly_data():
 
 @app.route('/api/ohlc/<ticker>/<datestr>')
 def get_ohlc_data(ticker: str, datestr: str):
-    external_data = get_ticker_ohlc_data(ticker, datestr)
+    cached = api_cache.get_cache(ticker=ticker.upper(), date=datestr.upper())
+    if cached is not None:
+        print(f"Returning value from cache for {ticker.upper()} on {datestr}")
+        return cached
+
+    external_data = get_ticker_ohlc_data(ticker.upper(), datestr)
     if external_data:
+        api_cache.cache_query(ticker=ticker.upper(), date=datestr.upper(), data=external_data)
         return jsonify(external_data)
     else:
         return jsonify({'message': 'It failed so hard'})
